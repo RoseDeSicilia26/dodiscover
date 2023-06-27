@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, FrozenSet, List, Set, Tuple
+from typing_needs import Any, Dict, List, Set, Tuple
 from warnings import warn
 
 import networkx as nx
 
-from ._protocol import Graph
-from .base import BasePyWhy
-from .typing import Column
+from _protocol import Graph
+from base import BasePyWhy
+from typing_needs import Column
 
 
 @dataclass(eq=True, frozen=True)
@@ -89,7 +89,7 @@ class Context(BasePyWhy):
     intervention_targets: List[Tuple[Column]] = field(default_factory=list)
 
     # (optional) mapping F-nodes to their symmetric difference intervention targets
-    symmetric_diff_map: Dict[Any, FrozenSet] = field(default_factory=dict)
+    symmetric_diff_map: Dict[Any, Any] = field(default_factory=dict)
 
     # sigma-map mapping F-nodes to their distribution indices
     sigma_map: Dict[Any, Tuple] = field(default_factory=dict)

@@ -1,4 +1,4 @@
-from typing import Dict, List, Set, Tuple, Union
+from typing import Dict, List, Set, Tuple, Union, Any
 
 import networkx as nx
 
@@ -9,3 +9,7 @@ Column = Union[None, int, float, str, Tuple]
 SeparatingSet = Dict[Column, Dict[Column, List[Set[Column]]]]
 
 NetworkxGraph = Union[nx.Graph, nx.DiGraph]
+
+Dict = Dict
+
+# Frozen Set

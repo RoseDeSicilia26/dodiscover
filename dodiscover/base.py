@@ -3,7 +3,7 @@ import warnings
 from collections import defaultdict
 from copy import deepcopy
 
-from ._version import __version__
+from _version import __version__
 
 
 class InconsistentVersionWarning(UserWarning):

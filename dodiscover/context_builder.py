@@ -4,9 +4,10 @@ from typing import Any, Callable, Dict, Optional, Set, Tuple, cast
 import networkx as nx
 import pandas as pd
 
-from ._protocol import Graph
-from .context import Context
-from .typing import Column, NetworkxGraph
+from context import Context
+from typing_needs import Column, NetworkxGraph
+from _protocol import Graph
+
 
 CALLABLES = types.FunctionType, types.MethodType
 
