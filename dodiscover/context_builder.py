@@ -5,7 +5,7 @@ import networkx as nx
 import pandas as pd
 
 from context import Context
-from typing_needs import Column, NetworkxGraph
+from typing import Column, NetworkxGraph
 from _protocol import Graph
 
 

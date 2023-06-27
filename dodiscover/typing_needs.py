@@ -10,6 +10,4 @@ SeparatingSet = Dict[Column, Dict[Column, List[Set[Column]]]]
 
 NetworkxGraph = Union[nx.Graph, nx.DiGraph]
 
-Dict = Dict
-
 # Frozen Set

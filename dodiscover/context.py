@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
-from typing_needs import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
 from warnings import warn
 
 import networkx as nx
 
 from _protocol import Graph
 from base import BasePyWhy
-from typing_needs import Column
+from typing import Column
 
 
 @dataclass(eq=True, frozen=True)
@@ -26,7 +26,7 @@ class Context(BasePyWhy):
         Set of observed variables and their associated descriptions.
     latents : Set
         Set of latent variables and their associated descriptions.
-    latents : Set
+    latents_descriptions : Dictionary
         Set of latent "unobserved" variables. If neither ``latents``,
         nor ``variables`` is set, then it is presumed that ``variables`` consists
         of the columns of ``data`` and ``latents`` is the empty set.

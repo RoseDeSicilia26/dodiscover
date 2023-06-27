@@ -1,10 +1,34 @@
-from typing import Dict, FrozenSet, Iterable, Protocol
+from typing import Dict, Optional, FrozenSet, Iterable, Protocol
 
 import networkx as nx
 
 
 class Graph(Protocol):
     """Protocol for graphs to work with dodiscover algorithms."""
+
+    _edge_reasons: Optional[Dict[list[str, str], str]] = None
+
+    def edge_reasons(self, edge_reasons: Dict[list[str, str], str]):
+        """
+        Set edge reasons dictionary
+
+        Args: 
+            Dictionary of relationships with a reason or explanation
+            Expected that a list of two column names be provided, and then a reason or explanation for their relationship
+            Expected that the first column be the parent and the second column be the child
+        """
+        self._edge_reasons = edge_reasons
+
+    def get_edge_reasons(self, edge_reasons: Dict[list[str, str], str]):
+        """
+        Set edge reasons dictionary
+
+        Args: 
+            Dictionary of relationships with a reason or explanation
+            Expected that a list of two column names be provided, and then a reason or explanation for their relationship
+            Expected that the first column be the parent and the second column be the child
+        """
+        return self._edge_reasons
 
     @property
     def nodes(self) -> Iterable:
