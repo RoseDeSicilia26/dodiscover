@@ -26,7 +26,9 @@ class ContextBuilder:
     _included_edges: Optional[NetworkxGraph] = None
     _excluded_edges: Optional[NetworkxGraph] = None
     _observed_variables: Optional[Set[Column]] = None
+    _observed_variables_descriptions: Optional[Dict[Column, str]] = None
     _latent_variables: Optional[Set[Column]] = None
+    _latent_variables_descriptions: Optional[Dict[Column, str]] = None
     _state_variables: Dict[str, Any] = dict()
 
     def __init__(self) -> None:
@@ -61,26 +63,6 @@ class ContextBuilder:
         self._init_graph = graph
         return self
 
-    def excluded_edges(self, exclude: Optional[NetworkxGraph]) -> "ContextBuilder":
-        """Set exclusion edge constraints to apply in discovery.
-
-        Parameters
-        ----------
-        excluded : Optional[NetworkxGraph]
-            Edges that should be excluded in the resultant graph
-
-        Returns
-        -------
-        self : ContextBuilder
-            The builder instance
-        """
-        if self._included_edges is not None:
-            for u, v in exclude.edges:  # type: ignore
-                if self._included_edges.has_edge(u, v):
-                    raise RuntimeError(f"{(u, v)} is already specified as an included edge.")
-        self._excluded_edges = exclude
-        return self
-
     def included_edges(self, include: Optional[NetworkxGraph]) -> "ContextBuilder":
         """Set inclusion edge constraints to apply in discovery.
 
@@ -99,6 +81,26 @@ class ContextBuilder:
                 if self._excluded_edges.has_edge(u, v):
                     raise RuntimeError(f"{(u, v)} is already specified as an excluded edge.")
         self._included_edges = include
+        return self
+
+    def excluded_edges(self, exclude: Optional[NetworkxGraph]) -> "ContextBuilder":
+        """Set exclusion edge constraints to apply in discovery.
+
+        Parameters
+        ----------
+        excluded : Optional[NetworkxGraph]
+            Edges that should be excluded in the resultant graph
+
+        Returns
+        -------
+        self : ContextBuilder
+            The builder instance
+        """
+        if self._included_edges is not None:
+            for u, v in exclude.edges:  # type: ignore
+                if self._included_edges.has_edge(u, v):
+                    raise RuntimeError(f"{(u, v)} is already specified as an included edge.")
+        self._excluded_edges = exclude
         return self
 
     def edges(
@@ -144,6 +146,10 @@ class ContextBuilder:
         self._observed_variables = observed
         return self
 
+    def observed_variables_descriptions(self, observed_descriptions: Optional[Dict[Column, str]] = None) -> "ContextBuilder":
+        self._observed_variables_descriptions = observed_descriptions
+        return self
+
     def latent_variables(self, latents: Optional[Set[Column]] = None) -> "ContextBuilder":
         """Set latent variables.
 
@@ -162,6 +168,10 @@ class ContextBuilder:
                 f'which contain variables you are trying to set as "latent".'
             )
         self._latent_variables = latents
+        return self
+
+    def latent_variables_descriptions(self, latent_descriptions: Optional[Dict[Column, str]] = None) -> "ContextBuilder":
+        self._latent_variables_descriptions = latent_descriptions
         return self
 
     def variables(
@@ -252,7 +262,9 @@ class ContextBuilder:
             included_edges=self._included_edges or empty_graph(),
             excluded_edges=self._excluded_edges or empty_graph(),
             observed_variables=self._observed_variables,
-            latent_variables=self._latent_variables or set(),
+            observed_variables_descriptions=self._observed_variables_descriptions,
+            latent_variables=self._latent_variables_descriptions,
+            latent_variables_descriptions=self._latent_variables_descriptions,
             state_variables=self._state_variables,
         )
 

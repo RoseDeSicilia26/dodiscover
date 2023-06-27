@@ -22,6 +22,10 @@ class Context(BasePyWhy):
         Set of observed variables. If neither ``latents``,
         nor ``variables`` is set, then it is presumed that ``variables`` consists
         of the columns of ``data`` and ``latents`` is the empty set.
+    variables_descriptions : Dictionary
+        Set of observed variables and their associated descriptions.
+    latents : Set
+        Set of latent variables and their associated descriptions.
     latents : Set
         Set of latent "unobserved" variables. If neither ``latents``,
         nor ``variables`` is set, then it is presumed that ``variables`` consists
@@ -62,12 +66,15 @@ class Context(BasePyWhy):
     for checking isomorphism among two graphs.
     """
 
-    observed_variables: Set[Column]
-    latent_variables: Set[Column]
-    state_variables: Dict[str, Any]
     init_graph: Graph = field(compare=False)
     included_edges: nx.Graph = field(compare=False)
     excluded_edges: nx.Graph = field(compare=False)
+    observed_variables: Set[Column]
+    observed_variables_descriptions: Dict[Column, str]
+    latent_variables: Set[Column]
+    latent_variables_descriptions: Dict[Column, str]
+    state_variables: Dict[str, Any]
+    
 
     ########################################################
     # for interventional data
