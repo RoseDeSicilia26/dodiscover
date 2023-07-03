@@ -26,9 +26,9 @@ class ContextBuilder:
     _init_graph: Optional[Graph] = None
     _included_edges: Optional[NetworkxGraph] = None
     _excluded_edges: Optional[NetworkxGraph] = None
-    _observed_variables: Optional[Set[Column]] = None
+    _observed_variables: Optional[Dict[Column, str]] = None
     _observed_variables_descriptions: Optional[Dict[Column, str]] = None
-    _latent_variables: Optional[Set[Column]] = None
+    _latent_variables: Optional[Dict[Column, str]] = None
     _latent_variables_descriptions: Optional[Dict[Column, str]] = None
     _state_variables: Dict[str, Any] = dict()
 
@@ -127,18 +127,19 @@ class ContextBuilder:
         self._excluded_edges = exclude
         return self
 
-    def observed_variables(self, observed: Optional[Set[Column]] = None) -> "ContextBuilder":
+    def observed_variables(self, observed: Optional[Dict[Column, str]] = None) -> "ContextBuilder":
         """Set observed variables.
 
         Parameters
         ----------
-        observed : Optional[Set[Column]]
-            Set of observed variables, by default None. If neither ``latents``,
-            nor ``variables`` is set, then it is presumed that ``variables`` consists
-            of the columns of ``data`` and ``latents`` is the empty set.
+        observed : Optional[Dict[Column, str]]
+            Dictionary of observed variables along witht their datatype, by default None. 
+            If neither ``latents``, nor ``variables`` is set, then it is presumed 
+            that ``variables`` consists of the columns of ``data`` and 
+            ``latents`` is the empty set.
         """
         if self._latent_variables is not None and any(
-            obs_var in self._latent_variables for obs_var in observed  # type: ignore
+            obs_var in self._latent_variables.keys() for obs_var in observed.keys()  # type: ignore
         ):
             raise RuntimeError(
                 f"Latent variables are set already {self._latent_variables}, "
@@ -151,21 +152,22 @@ class ContextBuilder:
         self._observed_variables_descriptions = observed_descriptions
         return self
 
-    def latent_variables(self, latents: Optional[Set[Column]] = None) -> "ContextBuilder":
+    def latent_variables(self, latents: Optional[Dict[Column, str]] = None) -> "ContextBuilder":
         """Set latent variables.
 
         Parameters
         ----------
-        latents : Optional[Set[Column]]
-            Set of latent "unobserved" variables, by default None. If neither ``latents``,
-            nor ``variables`` is set, then it is presumed that ``variables`` consists
-            of the columns of ``data`` and ``latents`` is the empty set.
+        latents : Optional[Dict[Column, str]]
+            Dictionary of latent variables along witht their datatype (if available), by default None. 
+            If neither ``latents``, nor ``variables`` is set, then it is presumed 
+            that ``variables`` consists of the columns of ``data`` and 
+            ``latents`` is the empty set.
         """
         if self._observed_variables is not None and any(
-            latent_var in self._observed_variables for latent_var in latents  # type: ignore
+            latent_var in self._observed_variables.keys() for latent_var in latents.keys()  # type: ignore
         ):
             raise RuntimeError(
-                f"Observed variables are set already {self._observed_variables}, "
+                f"Observed variables are set already {self._observed_variables.keys()}, "
                 f'which contain variables you are trying to set as "latent".'
             )
         self._latent_variables = latents
@@ -177,22 +179,24 @@ class ContextBuilder:
 
     def variables(
         self,
-        observed: Optional[Set[Column]] = None,
-        latents: Optional[Set[Column]] = None,
+        observed: Optional[Dict[Column, str]] = None,
+        latents: Optional[Dict[Column, str]] = None,
         data: Optional[pd.DataFrame] = None,
     ) -> "ContextBuilder":
         """Set variable-list information to utilize in discovery.
 
         Parameters
         ----------
-        observed : Optional[Set[Column]]
-            Set of observed variables, by default None. If neither ``latents``,
-            nor ``variables`` is set, then it is presumed that ``variables`` consists
-            of the columns of ``data`` and ``latents`` is the empty set.
-        latents : Optional[Set[Column]]
-            Set of latent "unobserved" variables, by default None. If neither ``latents``,
-            nor ``variables`` is set, then it is presumed that ``variables`` consists
-            of the columns of ``data`` and ``latents`` is the empty set.
+        observed : Optional[Dict[Column, str]]
+            Dictionary of observed variables along witht their datatype, by default None. 
+            If neither ``latents``, nor ``variables`` is set, then it is presumed 
+            that ``variables`` consists of the columns of ``data`` and 
+            ``latents`` is the empty set.
+        latents : Optional[Dict[Column, str]]
+            Dictionary of latent variables along witht their datatype (if available), by default None. 
+            If neither ``latents``, nor ``variables`` is set, then it is presumed 
+            that ``variables`` consists of the columns of ``data`` and 
+            ``latents`` is the empty set.
         data : Optional[pd.DataFrame]
             the data to use for variable inference.
 
@@ -257,14 +261,14 @@ class ContextBuilder:
         if self._observed_variables is None:
             raise ValueError("Could not infer variables from data or given arguments.")
 
-        empty_graph = self._empty_graph_func(self._observed_variables)
+        empty_graph = self._empty_graph_func(self._observed_variables.keys())
         return Context(
-            init_graph=self._interpolate_graph(self._observed_variables),
+            init_graph=self._interpolate_graph(self._observed_variables.keys()),
             included_edges=self._included_edges or empty_graph(),
             excluded_edges=self._excluded_edges or empty_graph(),
             observed_variables=self._observed_variables,
             observed_variables_descriptions=self._observed_variables_descriptions,
-            latent_variables=self._latent_variables_descriptions,
+            latent_variables=self._latent_variables,
             latent_variables_descriptions=self._latent_variables_descriptions,
             state_variables=self._state_variables,
         )
@@ -272,29 +276,37 @@ class ContextBuilder:
     def _interpolate_variables(
         self,
         data: pd.DataFrame,
-        observed: Optional[Set[Column]] = None,
-        latents: Optional[Set[Column]] = None,
-    ) -> Tuple[Set[Column], Set[Column]]:
+        observed: Optional[Dict[Column, str]] = None,
+        latents: Optional[Dict[Column, str]] = None,
+    ) -> Tuple[Dict[Column, str], Dict[Column, str]]:
         # initialize and parse the set of variables, latents and others
-        columns = set(data.columns)
-        if observed is not None and latents is not None:
-            if columns - set(observed) != set(latents):
-                raise ValueError(
-                    "If observed and latents are both set, then they must "
-                    "include all columns in data."
-                )
-        elif observed is None and latents is not None:
-            observed = columns - set(latents)
-        elif latents is None and observed is not None:
-            latents = columns - set(observed)
-        elif observed is None and latents is None:
-            # when neither observed, nor latents is set, it is assumed
-            # that the data is all "not latent"
-            observed = columns
-            latents = set()
+        
+        columns : Dict[Column, str] = {}
+        for column in df.columns:
+            columns[column] = str(df.dtypes[column])
 
-        observed = set(cast(Set[Column], observed))
-        latents = set(cast(Set[Column], latents))
+        # if both observed and latents are set, then they must include all columns in data
+        if observed is not None and latents is not None:
+            # Check if observed and latents together include all columns in data
+            if set(columns.keys()) - set(observed.keys()) != set(latents.keys()):
+                # If observed and latents are both set, they must include all columns in data
+                raise ValueError("If observed and latents are both set, then they must include all columns in data.")
+        elif observed is None and latents is not None:
+            # If observed is not set but latents is set
+            for key, value in columns.items():
+                if key not in latents.keys():
+                    observed[key] = value
+        elif latents is None and observed is not None:
+            # If latents is not set but observed is set
+            for key, value in columns.items():
+                if key not in observed.keys():
+                    latents[key] = value
+        elif observed is None and latents is None:
+            # If neither observed nor latents is set
+            # Assume that all columns are observed and none are latent
+            observed = columns
+            latents : Dict[Column, str] = {}
+
         return (observed, latents)
 
     def _interpolate_graph(self, graph_variables) -> nx.Graph:

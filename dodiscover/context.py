@@ -18,15 +18,17 @@ class Context(BasePyWhy):
 
     Parameters
     ----------
-    variables : Set
-        Set of observed variables. If neither ``latents``,
-        nor ``variables`` is set, then it is presumed that ``variables`` consists
+    variables : Dict[Column, str]
+        Dictionary of observed variables along with their datatype. 
+        If variables is latent, then no datatype is expected. 
+        If neither ``latents``, nor ``variables`` is set, 
+        then it is presumed that ``variables`` consists
         of the columns of ``data`` and ``latents`` is the empty set.
-    variables_descriptions : Dictionary
+    variables_descriptions : Dict[Column, str]
         Set of observed variables and their associated descriptions.
-    latents : Set
+    latents : Dict[Column, str]
         Set of latent variables and their associated descriptions.
-    latents_descriptions : Dictionary
+    latents_descriptions : Dict[Column, str]
         Set of latent "unobserved" variables. If neither ``latents``,
         nor ``variables`` is set, then it is presumed that ``variables`` consists
         of the columns of ``data`` and ``latents`` is the empty set.
@@ -69,9 +71,9 @@ class Context(BasePyWhy):
     init_graph: Graph = field(compare=False)
     included_edges: nx.Graph = field(compare=False)
     excluded_edges: nx.Graph = field(compare=False)
-    observed_variables: Set[Column]
+    observed_variables: Dict[Column, str]
     observed_variables_descriptions: Dict[Column, str]
-    latent_variables: Set[Column]
+    latent_variables: Set[Column, str]
     latent_variables_descriptions: Dict[Column, str]
     state_variables: Dict[str, Any]
     
